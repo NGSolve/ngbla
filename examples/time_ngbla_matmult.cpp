@@ -31,5 +31,5 @@ int main()
   double t = tmatmult.GetTime()/n_repetitions;
   double gflops = 1e-9*N*N*N/t;
 
-  cout << "Needed " << t/1000 << " ms per Multiplication, GFlops: " << gflops << endl;
+  cout << "Needed " << t*1000 << " ms per Multiplication, GFlops: " << gflops << endl;
 }
