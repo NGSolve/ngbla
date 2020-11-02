@@ -33,14 +33,8 @@
 
 #endif // WIN32
 
-
-#ifdef WIN32
-        #define NGCORE_API_EXPORT __declspec(dllexport)
-        #define NGCORE_API_IMPORT __declspec(dllimport)
-#else
-        #define NGCORE_API_EXPORT __attribute__((visibility("default")))
-        #define NGCORE_API_IMPORT __attribute__((visibility("default")))
-#endif
+#define NGCORE_API_EXPORT
+#define NGCORE_API_IMPORT
 
 #ifdef NGCORE_EXPORTS
         #define NGCORE_API NGCORE_API_EXPORT
