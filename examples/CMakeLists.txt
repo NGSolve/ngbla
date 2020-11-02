@@ -1,0 +1,3 @@
+add_executable(time_ngbla_matmult time_ngbla_matmult.cpp)
+target_link_libraries(time_ngbla_matmult ngcore)
+
