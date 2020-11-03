@@ -4,19 +4,38 @@ using namespace ngbla;
 
 int main()
 {
-  int N = 500;
-  cout << "Starting Matrix multiplication timing with N = " << N << endl;
-
-  Matrix<> a(N);
-  Matrix<> b(N);
-  Matrix<> c(N);
-
-  // random init
-  for(auto i : Range(N))
-    for(auto j : Range(N))
+  for (size_t n = 10; n <= 5120; n *= 2)
     {
-      a(i,j) = rand();
-      b(i,j) = rand();
+      cout << "n = " << n << endl;
+
+      Matrix<> a(n);
+      Matrix<> b(n);
+      Matrix<> c(n);
+      
+      // random init
+      for (int i = 0; i < n; i++)
+        for (int j = 0; j < n; j++)
+          {
+            a(i,j) = rand();
+            b(i,j) = rand();
+          }
+      
+      Timer timer("MatMult "+to_string(n));
+
+      c = a*b; // warmup
+      
+      int runs = 1+1e9 / (n*n*n);
+      
+      timer.Start();
+      for (size_t i = 0; i < runs; i++)
+        c = a*b;
+      timer.Stop();
+
+      timer.AddFlops (runs*n*n*n);
+      // double t = tmatmult.GetTime()/n_repetitions;
+      // double gflops = 1e-9*N*N*N/t;
+
+      //cout << "Needed " << t/1000 << " ms per Multiplication, GFlops: " << gflops << endl;
     }
 
   Timer tmatmult("MatMult");
@@ -32,4 +51,5 @@ int main()
   double gflops = 1e-9*N*N*N/t;
 
   cout << "Needed " << t*1000 << " ms per Multiplication, GFlops: " << gflops << endl;
+  // NgProfiler::Print (stdout);
 }
