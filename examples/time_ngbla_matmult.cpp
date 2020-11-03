@@ -7,7 +7,7 @@ int main()
   for (size_t n = 10; n <= 5120; n *= 2)
     {
       cout << "n = " << n << endl;
-
+      
       Matrix<> a(n);
       Matrix<> b(n);
       Matrix<> c(n);
@@ -21,7 +21,7 @@ int main()
           }
       
       Timer timer("MatMult "+to_string(n));
-
+      
       c = a*b; // warmup
       
       int runs = 1+1e9 / (n*n*n);
@@ -32,12 +32,13 @@ int main()
       timer.Stop();
 
       timer.AddFlops (runs*n*n*n);
-      // double t = tmatmult.GetTime()/n_repetitions;
-      // double gflops = 1e-9*N*N*N/t;
+      double t = tmatmult.GetTime()/n_repetitions;
+      double gflops = 1e-9*N*N*N/t;
 
-      //cout << "Needed " << t/1000 << " ms per Multiplication, GFlops: " << gflops << endl;
+      cout << "Needed " << t/1000 << " ms per Multiplication, GFlops: " << gflops << endl;
     }
 
+  /*
   Timer tmatmult("MatMult");
 
   c = a*b; // warmup
@@ -51,5 +52,6 @@ int main()
   double gflops = 1e-9*N*N*N/t;
 
   cout << "Needed " << t*1000 << " ms per Multiplication, GFlops: " << gflops << endl;
+  */
   // NgProfiler::Print (stdout);
 }

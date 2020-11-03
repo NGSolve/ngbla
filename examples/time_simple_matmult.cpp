@@ -30,7 +30,7 @@ void MyMatMult (SliceMatrix<> a, SliceMatrix<> b, SliceMatrix<> c)
 
 int main()
 {
-  for (size_t n = 10; n <= 2560; n *= 2)
+  for (size_t n = 10; n <= 1280; n *= 2)
     {
       cout << "n = " << n << endl;
 
@@ -59,12 +59,9 @@ int main()
       timer.Stop();
 
       timer.AddFlops (runs*n*n*n);
-      // double t = tmatmult.GetTime()/n_repetitions;
-      // double gflops = 1e-9*N*N*N/t;
-
-      //cout << "Needed " << t/1000 << " ms per Multiplication, GFlops: " << gflops << endl;
     }
-         NgProfiler::Print (stdout);
+  
+  NgProfiler::Print (stdout);
 }
 
 
@@ -83,5 +80,12 @@ job 8187 calls        1, time 0.0786 sec, MFlops = 12726.23 MatMult 20
 job 8188 calls        1, time 0.1360 sec, MFlops = 7355.59 MatMult 10
 
 three loops:
-
+job 8181 calls        1, time 13.6004 sec, MFlops = 154.20 MatMult 1280
+job 8182 calls        1, time 3.0866 sec, MFlops = 339.71 MatMult 640
+job 8183 calls        1, time 1.1404 sec, MFlops = 890.73 MatMult 320
+job 8184 calls        1, time 0.9859 sec, MFlops = 1017.92 MatMult 160
+job 8185 calls        1, time 0.7783 sec, MFlops = 1285.36 MatMult 80
+job 8186 calls        1, time 0.6704 sec, MFlops = 1491.70 MatMult 40
+job 8187 calls        1, time 0.6436 sec, MFlops = 1553.68 MatMult 20
+job 8188 calls        1, time 0.7171 sec, MFlops = 1394.58 MatMult 10
  */
