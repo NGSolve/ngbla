@@ -10,4 +10,7 @@ target_link_libraries(submatvec ngcore)
 add_executable(time_simple_matmult time_simple_matmult.cpp) 
 target_link_libraries(time_simple_matmult ngcore)
 
+add_executable(demo_simd demo_simd.cpp)
+target_link_libraries(demo_simd ngcore)
+
 
