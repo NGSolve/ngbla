@@ -1197,12 +1197,25 @@ void GenerateShortSum (ostream & out, int wa, OP op)
   
   // out << "#pragma unroll 2\n";  
   out << "for (size_t j = 0; j < ha; j++, pa2 += da, pc2 += dc)\n"
-      << "{\n"
-      << "SIMD<double> sum0 = 0.0;\n"
-      << "SIMD<double> sum1 = 0.0;\n";
+      << "{\n";
+  if (op == SET || op == SETNEG)
+    {
+      out << "SIMD<double> sum0 = 0.0;\n"
+          << "SIMD<double> sum1 = 0.0;\n";
+    }
+  else
+    {
+      out << "SIMD<double> sum0(pc2);\n";      
+      out << "SIMD<double> sum1(pc2+SW);\n";      
+    }
   for (int k = 0; k < wa; k++)
-    out << "sum0 += SIMD<double>(pa2[" << k << "]) * b"<< k << "0;\n"
-        << "sum1 += SIMD<double>(pa2[" << k << "]) * b"<< k << "1;\n";
+    if (op == SET || op == ADD)
+      out << "sum0 += SIMD<double>(pa2[" << k << "]) * b"<< k << "0;\n"
+          << "sum1 += SIMD<double>(pa2[" << k << "]) * b"<< k << "1;\n";
+    else
+      out << "sum0 -= SIMD<double>(pa2[" << k << "]) * b"<< k << "0;\n"
+          << "sum1 -= SIMD<double>(pa2[" << k << "]) * b"<< k << "1;\n";
+
   out << "sum0.Store(pc2);\n"
       << "sum1.Store(pc2+SW);\n"
       << "} }\n";
@@ -1210,6 +1223,47 @@ void GenerateShortSum (ostream & out, int wa, OP op)
   out << "size_t rest = wb % (2*SW); \n"
       << "if (rest == 0) return; \n";
 
+  
+  for (int r : { 8, 4, 2, 1})
+    {
+      if (r > SIMD<double>::Size()) continue;
+      
+      out << "if (rest & " << r << ") {  \n";
+      if (wa > 0)
+        out << "double * pb2 = pb;\n";
+      for (int k = 0; k < wa; k++)
+        out << "SIMD<double,"<<r<<"> b" << k << "(pb2); pb2 += db;\n";
+      out << "double * pa2 = pa;\n"
+          << "double * pc2 = pc;\n"
+          << "__assume(ha>0);\n";
+  
+      out << "#pragma unroll 1\n";  
+      out << "for (size_t j = 0; j < ha; j++, pa2 += da, pc2 += dc)\n"
+          << "{\n";
+      if (op == SET || op == SETNEG)
+        out << "SIMD<double,"<<r<<"> sum = 0.0;\n";
+      else
+        out << "SIMD<double,"<<r<<"> sum(pc2);\n";
+      
+      for (int k = 0; k < wa; k++)
+        if (op == SET || op == ADD)    
+          out << "sum += SIMD<double,"<<r<<">(pa2[" << k << "]) * b"<< k << ";\n";
+        else
+          out << "sum -= SIMD<double,"<<r<<">(pa2[" << k << "]) * b"<< k << ";\n";
+      
+      out << "sum.Store(pc2);\n"
+          << "}\n";
+
+      out << "pc += " << r << ";\n";
+      out << "pb += " << r << ";\n";      
+      out << "}\n";
+    }
+  out << "return; \n";
+
+  
+
+
+  
   out << "if (rest >= SW) \n"
       << "{\n"
       << "if (rest > SW)\n"
@@ -1227,12 +1281,26 @@ void GenerateShortSum (ostream & out, int wa, OP op)
 
   out << "#pragma unroll 1\n";    
   out << "for (size_t j = 0; j < ha; j++, pa2 += da, pc2 += dc)\n"
-      << "{\n"
-      << "SIMD<double> sum0 = 0.0;\n"
-      << "SIMD<double> sum1 = 0.0;\n";
+      << "{\n";
+
+  if (op == SET || op == SETNEG)
+    {
+      out << "SIMD<double> sum0 = 0.0;\n"
+          << "SIMD<double> sum1 = 0.0;\n";
+    }
+  else
+    {
+      out << "SIMD<double> sum0(pc2);\n";      
+      out << "SIMD<double> sum1(pc2+SW,mask);\n";      
+    }
   for (int k = 0; k < wa; k++)
-    out << "sum0 += SIMD<double>(pa2[" << k << "]) * b"<< k << "0;\n"
-        << "sum1 += SIMD<double>(pa2[" << k << "]) * b"<< k << "1;\n";
+    if (op == SET || op == ADD)
+      out << "sum0 += SIMD<double>(pa2[" << k << "]) * b"<< k << "0;\n"
+          << "sum1 += SIMD<double>(pa2[" << k << "]) * b"<< k << "1;\n";
+    else
+      out << "sum0 -= SIMD<double>(pa2[" << k << "]) * b"<< k << "0;\n"
+          << "sum1 -= SIMD<double>(pa2[" << k << "]) * b"<< k << "1;\n";
+      
   out << "sum0.Store(pc2);\n"
       << "sum1.Store(pc2+SW,mask);\n"
       << "}\n";
@@ -1251,10 +1319,18 @@ void GenerateShortSum (ostream & out, int wa, OP op)
   
   out << "#pragma unroll 1\n";  
   out << "for (size_t j = 0; j < ha; j++, pa2 += da, pc2 += dc)\n"
-      << "{\n"
-      << "SIMD<double> sum = 0.0;\n";
+      << "{\n";
+  if (op == SET || op == SETNEG)
+    out << "SIMD<double> sum = 0.0;\n";
+  else
+    out << "SIMD<double> sum(pc2);\n";
+    
   for (int k = 0; k < wa; k++)
+    if (op == SET || op == ADD)    
       out << "sum += SIMD<double>(pa2[" << k << "]) * b"<< k << ";\n";
+    else
+      out << "sum -= SIMD<double>(pa2[" << k << "]) * b"<< k << ";\n";
+      
   out << "sum.Store(pc2);\n"
       << "}\n";
   
@@ -1274,10 +1350,17 @@ void GenerateShortSum (ostream & out, int wa, OP op)
   
   out << "#pragma unroll 1\n";  
   out << "for (size_t j = 0; j < ha; j++, pa2 += da, pc2 += dc)\n"
-      << "{\n"
-      << "SIMD<double> sum = 0.0;\n";
+      << "{\n";
+  if (op == SET || op == SETNEG)
+    out << "SIMD<double> sum = 0.0;\n";
+  else
+    out << "SIMD<double> sum(pc2, mask);\n";
+  
   for (int k = 0; k < wa; k++)
+    if (op == SET || op == ADD)    
       out << "sum += SIMD<double>(pa2[" << k << "]) * b"<< k << ";\n";
+    else
+      out << "sum -= SIMD<double>(pa2[" << k << "]) * b"<< k << ";\n";
   out << "sum.Store(pc2, mask);\n"
       << "} }\n";
 
@@ -1840,6 +1923,123 @@ void GenerateAddMatTransVecI (ostream & out, int wa)
 
 
 
+/* ********************* Triangular kernels ********************************** */
+
+void GenerateTriangular (ofstream & out, bool solve, bool lowerleft, bool normalized, int dim)
+{
+  out << "template <> " << endl
+      << "inline void " << (solve ? "KernelTriangularSolve" : "KernelTriangularMult")
+      << "<" << (lowerleft ? "LowerLeft" : "UpperRight") << ","
+      << (normalized ? "Normalized" : "NonNormalized") << "," << dim << ">" 
+      << "(size_t wx, double * pt, size_t dt, double * px, size_t dx) { " << endl;
+
+  if (lowerleft)
+    {
+      for (int i = 0; i < dim; i++)
+        for (int j = 0; j < (normalized ? i : i+1); j++)
+          out << "SIMD<double> L" << i << j << " = pt[" << i << "*dt+" << j << "];" << endl;
+    }
+  else
+    {
+      for (int i = 0; i < dim; i++)
+        for (int j = (normalized ? i+1 : i); j < dim; j++)
+          out << "SIMD<double> U" << i << j << " = pt[" << i << "*dt+" << j << "];" << endl;
+    }
+
+  if (solve && !normalized)
+    {
+      if (lowerleft)
+        for (int i = 0; i < dim; i++)
+          out << "SIMD<double> Linv" << i << i << " = 1.0 / L" << i << i << ";\n";
+      else
+        for (int i = 0; i < dim; i++)
+          out << "SIMD<double> Uinv" << i << i << " = 1.0 / U" << i << i << ";\n";
+    }
+  
+
+  stringstream operation;
+  if (!solve)
+    { // mult
+      if (lowerleft)
+        { //  lowerleft mult
+          for (int i = dim-1; i >= 0; i--)
+            {
+              if (!normalized)
+                operation << "x" << i << " *= L" << i << i << ";\n";
+              for (int j = 0; j < i; j++)
+                operation << "x" << i << " += L" << i << j << " * x" << j << ";\n";
+            }
+        }
+      else
+        {  // upperright mult
+          for (int i = 0; i < dim; i++)
+            {
+              if (!normalized)
+                operation << "x" << i << " *= " << "U" << i << i << ";\n";
+              for (int j = i+1; j < dim; j++)
+                operation << "x" << i << " += U" << i << j << "*" << "x" << j << ";\n";
+            }
+        }
+    }
+  else
+    { // solve
+      if (lowerleft)
+        { //  lowerleft solve
+          for (int i = 0; i < dim; i++)
+            {
+              for (int j = 0; j < i; j++)
+                operation << "x" << i << " -= L" << i << j << "*x" << j << ";\n";
+              if (!normalized)
+                operation << "x" << i << " *= " << "Linv" << i << i << ";\n";
+            }
+        }
+      else
+        { //  upperright solve
+          for (int i = dim-1; i >= 0; i--)
+            {
+              for (int j = i+1; j < dim; j++)
+                operation << "x" << i << " -= U" << i << j << "*x" << j << ";\n";
+              if (!normalized)
+                operation << "x" << i << " *= " << "Uinv" << i << i << ";\n";
+            }
+        }
+    }
+
+  out << "constexpr size_t SW = SIMD<double>::Size(); \n"
+      << "size_t i = 0; \n"
+      << "for ( ; i+SW <= wx; i+=SW) { \n";
+  
+  for (int i = 0; i < dim; i++)
+    out << "SIMD<double> x" << i << "(px+" << i << "*dx+i); \n";
+
+  out << operation.str();
+
+  int begin = 0, end = dim;
+  if (lowerleft && normalized) begin++;
+  if (!lowerleft && normalized) end--;
+  for (int i = begin; i < end; i++)
+    out << "x" << i << ".Store(px+" << i << "*dx+i); \n";
+  
+  out << "}\n";
+
+  // remainder
+
+  // mask = ...
+  out << "size_t rest = wx % SW; \n"
+      << "if (rest == 0) return; \n"
+      << "SIMD<mask64> mask(rest);" << endl;
+  
+  for (int i = 0; i < dim; i++)
+    out << "SIMD<double> x" << i << "(px+" << i << "*dx+i, mask); \n";
+
+  out << operation.str();
+
+  for (int i = begin; i < end; i++)    
+    out << "x" << i << ".Store(px+" << i << "*dx+i, mask); \n";
+
+  out << "}\n";
+}
+
 
 
 
@@ -1850,6 +2050,14 @@ int main ()
   out << "static_assert(SIMD<double>::Size() == " << SIMD<double>::Size() << ", \"inconsistent compile flags for generate_mat_kernels.cpp and matkernel.hpp\");" << endl;
   out << "enum OPERATION { ADD, SUB, SET, SETNEG };" << endl;
 
+  out << " /* *********************** MatKernelMultAB ********************* */" << endl
+      << " /* A,B,C ... row major storage                                   */" << endl
+      << " /* dim C = H * (SW*W)     SW .. SIMD<double>::Size()             */" << endl
+      << " /* OP == SET:    C = A * B                                       */" << endl
+      << " /* OP == ADD:    C += A * B                                      */" << endl
+      << " /* OP == NEG:    C = -A * B                                      */" << endl
+      << " /* OP == SUB:    C -= A * B                                      */" << endl
+      << " /* ************************************************************* */" << endl;   
   out << "template <size_t H, size_t W, OPERATION OP>" << endl
       << "inline void MatKernelMultAB" << endl
       << "(size_t n, double * pa, size_t da, double * pb, size_t db, double * pc, size_t dc);" << endl;
@@ -1897,6 +2105,12 @@ int main ()
 
   
   // Scal AB
+  out << " /* *********************** MatKernelScalAB ********************* */" << endl
+      << " /* Inner products of rows of A with rows of B                    */" << endl
+      << " /* A,B ... row major storage                                     */" << endl
+      << " /* dim A = H * n                                                 */" << endl
+      << " /* dim B = W * n                                                 */" << endl
+      << " /* ************************************************************* */" << endl;
   
   out << "template <size_t H, size_t W> inline auto MatKernelScalAB" << endl
       << "    (size_t n," << endl
@@ -2085,4 +2299,27 @@ int main ()
       << "(double s, size_t ha, double * pa, size_t da, double * x, double * y, int * ind);" << endl;
   for (int i = 0; i <= 24; i++)
     GenerateAddMatTransVecI (out, i);
+
+
+
+
+  /* *********************** MatKernelTriangularMult ***************** */
+  out << "template <TRIG_SIDE SIDE, TRIG_NORMAL NORM, int DIM>" << endl
+      << "inline void KernelTriangularMult (size_t wx, double * pt, size_t dt, double * px, size_t dx);" << endl;
+  out << "template <TRIG_SIDE SIDE, TRIG_NORMAL NORM, int DIM>" << endl
+      << "inline void KernelTriangularSolve (size_t wx, double * pt, size_t dt, double * px, size_t dx);" << endl;
+
+
+  for (int i = 0; i <= 4; i++)
+    {
+      // bool solve, bool lowerleft, bool normalized, int dim
+      GenerateTriangular (out, false, true, false, i);
+      GenerateTriangular (out, false, true, true, i);
+      GenerateTriangular (out, false, false, false, i);
+      GenerateTriangular (out, false, false, true, i);
+      GenerateTriangular (out, true, true, false, i);
+      GenerateTriangular (out, true, true, true, i);
+      GenerateTriangular (out, true, false, false, i);
+      GenerateTriangular (out, true, false, true, i);
+    }
 }
