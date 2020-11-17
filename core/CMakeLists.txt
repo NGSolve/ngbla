@@ -1,5 +1,5 @@
 
-add_library(ngcore STATIC
+add_library(ngcore OBJECT
   archive.cpp
   bitarray.cpp
   exception.cpp
