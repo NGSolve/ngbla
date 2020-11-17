@@ -1,0 +1,83 @@
+diff --git b/ngbla/bla.hpp a/ngbla/bla.hpp
+index e0e1a7b..022ed7f 100755
+--- b/ngbla/bla.hpp
++++ a/ngbla/bla.hpp
+@@ -84,8 +84,6 @@ namespace ngcore
+ #include "triangular.hpp"
+ #include "tensor.hpp"
+ 
+-#include "cuda_bla.hpp"
+-
+ namespace ngbla
+ {
+ 
+diff --git b/ngbla/generate_mat_kernels.cpp a/ngbla/generate_mat_kernels.cpp
+index 1021ece..5560e54 100644
+--- b/ngbla/generate_mat_kernels.cpp
++++ a/ngbla/generate_mat_kernels.cpp
+@@ -1,11 +1,11 @@
+ // ngscxx generate_mat_kernels.cpp ; a.out
+ 
+-#include "../include/ngs_stdcpp_include.hpp"
++#include "ngs_stdcpp_include.hpp"
+ #define NGS_DLL_HEADER
+ 
+ using namespace std;
+ 
+-#include "../ngstd/simd.hpp"
++#include "simd.hpp"
+ using namespace ngstd;
+ 
+ enum OP { ADD, SUB, SET, SETNEG };
+diff --git b/ngbla/ngblas.cpp a/ngbla/ngblas.cpp
+index 573346a..326fcf9 100644
+--- b/ngbla/ngblas.cpp
++++ a/ngbla/ngblas.cpp
+@@ -4,6 +4,7 @@
+ namespace ngbla
+ {
+ 
++  /*
+   int dgemm(char *transa, char *transb, integer *m, integer *
+ 		  n, integer *k, doublereal *alpha, doublereal *a, integer *lda, 
+ 		  doublereal *b, integer *ldb, doublereal *beta, doublereal *c__, 
+@@ -37,6 +38,7 @@ namespace ngbla
+   {
+     return dgetrf_(n,m,a,lda,ipiv,info);
+   }
++  */
+ 
+ #include "matkernel.hpp"
+ 
+@@ -2760,6 +2762,7 @@ namespace ngbla
+ 
+ 
+     
++    /*
+     if (what == 0 || what == 5)
+       {
+         // y = A*x
+@@ -2790,6 +2793,7 @@ namespace ngbla
+           timings.push_back(make_tuple("MultMatVecLapack", 1e-9 * n*m*its / t.GetTime()));
+         }
+       }
++    */
+ 
+     if (what == 0 || what == 6)
+       {
+@@ -3516,6 +3520,7 @@ namespace ngbla
+         }
+       }
+ 
++     /*
+      if (what == 0 || what == 211)
+       {
+         // CalcInverse
+@@ -3534,6 +3539,7 @@ namespace ngbla
+           timings.push_back(make_tuple("LapackInv(A)", 1e-9 * tot *its / t.GetTime()));
+         }
+       }
++      */
+ 
+     
+     return timings;

@@ -18,7 +18,7 @@ target_sources(ngcore
   # add_library(ngbla STATIC
         bandmatrix.cpp calcinverse.cpp cholesky.cpp 
         eigensystem.cpp LapackGEP.cpp
-        avector.cpp ngblas.cpp
+        avector.cpp ngblas.cpp triangular.cpp
         )
 
 add_dependencies(ngcore kernel_generated)
