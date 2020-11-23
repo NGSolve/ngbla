@@ -2,10 +2,14 @@
 
 using namespace ngbla;
 
+
+void MatMultOperator (SliceMatrix<> a, SliceMatrix<> b, SliceMatrix<> c)
+{
+  c = a*b;
+}
+
 void MyMatMult (SliceMatrix<> a, SliceMatrix<> b, SliceMatrix<> c)
 {
-  // c = a*b;
-
   size_t n = c.Height();
   size_t m = c.Width();
   size_t w = a.Width();
@@ -46,7 +50,7 @@ int main()
             b(i,j) = rand();
           }
       
-      Timer timer("MatMult "+to_string(n));
+      Timer timer("MyMatMult "+to_string(n));
 
       c = a*b; // warmup
       
@@ -59,6 +63,17 @@ int main()
       timer.Stop();
 
       timer.AddFlops (runs*n*n*n);
+
+
+      Timer timerop("MatMultOp "+to_string(n));
+      c = a*b; // warmup
+      
+      timerop.Start();
+      for (size_t i = 0; i < runs; i++)
+        MatMultOperator (a, b, c);
+      timerop.Stop();
+
+      timerop.AddFlops (runs*n*n*n);
     }
   
   NgProfiler::Print (stdout);
