@@ -82,6 +82,7 @@ namespace ngcore
 #include "symmetricmatrix.hpp"
 #include "bandmatrix.hpp"
 #include "triangular.hpp"
+#include "householder.hpp"
 #include "tensor.hpp"
 
 namespace ngbla
