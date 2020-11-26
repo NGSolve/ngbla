@@ -65,6 +65,10 @@ set(CMAKE_CXX_STANDARD 17)
 
 set(NGBLA_COMPILE_OPTIONS "")
 
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  list(APPEND NGBLA_COMPILE_OPTIONS "-Wno-undefined-var-template")
+endif()
+
 #######################################################################
 if(USE_NATIVE_ARCH)
     if(WIN32)
