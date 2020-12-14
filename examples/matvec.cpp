@@ -1,7 +1,7 @@
 #include <bla.hpp>
 using namespace ngbla;
 
-
+ 
 int main()
 {
   Vector<double> x(5), y(5);

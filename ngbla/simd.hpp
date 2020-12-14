@@ -268,6 +268,10 @@ namespace ngstd
       : mask(_mm512_cmpgt_epi64_mask(_mm512_set1_epi64(i),
                                      _mm512_set_epi64(7, 6, 5, 4, 3, 2, 1, 0)))
     { ; }
+    SIMD (int64_t i)
+      : mask(_mm512_cmpgt_epi64_mask(_mm512_set1_epi64(i),
+                                     _mm512_set_epi64(7, 6, 5, 4, 3, 2, 1, 0)))
+    { ; }
     SIMD (__mmask8 _mask) : mask(_mask) { ; }        
     __mmask8 Data() const { return mask; }
     static constexpr int Size() { return 8; }    
@@ -361,6 +365,7 @@ namespace ngstd
     INLINE auto & operator[] (int i) { return ((int64_t*)(&data))[i]; }
     INLINE __m128i Data() const { return data; }
     INLINE __m128i & Data() { return data; }
+    static SIMD FirstInt() { return { 0, 1 }; }    
   };
 
 
@@ -461,6 +466,7 @@ namespace ngstd
 
     SIMD<int64_t,2> Lo() const { return _mm256_extractf128_si256(data, 0); }
     SIMD<int64_t,2> Hi() const { return _mm256_extractf128_si256(data, 1); }
+    static SIMD FirstInt() { return { 0, 1, 2, 3 }; }
   };
 
 
@@ -494,15 +500,18 @@ namespace ngstd
     }   
     
     INLINE double operator[] (int i) const { return ((double*)(&data))[i]; }
-    INLINE double & operator[] (int i) { return ((double*)(&data))[i]; }
+    // [[deprecated("don't write to individual elments of SIMD")]]                
+    // INLINE double & operator[] (int i) { return ((double*)(&data))[i]; }
+    template <int I>
+    double Get() const { return ((double*)(&data))[I]; }
     INLINE __m256d Data() const { return data; }
     INLINE __m256d & Data() { return data; }
 
     SIMD<double,2> Lo() const { return _mm256_extractf128_pd(data, 0); }
     SIMD<double,2> Hi() const { return _mm256_extractf128_pd(data, 1); }
 
-    operator tuple<double&,double&,double&,double&> ()
-    { return tuple<double&,double&,double&,double&>((*this)[0], (*this)[1], (*this)[2], (*this)[3]); }
+    // operator tuple<double&,double&,double&,double&> ()
+    // { return tuple<double&,double&,double&,double&>((*this)[0], (*this)[1], (*this)[2], (*this)[3]); }
   };
 
   INLINE auto Unpack (SIMD<double,4> a, SIMD<double,4> b)
@@ -549,6 +558,8 @@ namespace ngstd
 
     operator tuple<int64_t&,int64_t&,int64_t&,int64_t&> ()
     { return tuple<int64_t&,int64_t&,int64_t&,int64_t&>((*this)[0], (*this)[1], (*this)[2], (*this)[3]); }
+
+    static SIMD FirstInt() { return { 0, 1, 2, 3 }; }
   };
   
   template<>
@@ -728,7 +739,7 @@ namespace ngstd
     INLINE auto & operator[] (int i) { return ((int64_t*)(&data))[i]; }
     INLINE __m512i Data() const { return data; }
     INLINE __m512i & Data() { return data; }
-
+    static SIMD FirstInt() { return { 0, 1, 2, 3, 4, 5, 6, 7 }; }
     // SIMD<double,4> Lo() const { return _mm512_extracti64x4_epi64(data, 0); }
     // SIMD<double,4> Hi() const { return _mm512_extracti64x4_epi64(data, 1); }
   };
@@ -1208,14 +1219,26 @@ namespace ngstd
   }
 
 
-  
+  template <int NUM, typename FUNC>
+  INLINE void Iterate2 (FUNC f)
+  {
+    if constexpr (NUM > 1) Iterate2<NUM-1> (f);
+    if constexpr (NUM >= 1) f(std::integral_constant<int,NUM-1>());
+  }
+
   
   template <typename T, int N>
   ostream & operator<< (ostream & ost, SIMD<T,N> simd)
   {
+    /*
     ost << simd[0];
     for (int i = 1; i < simd.Size(); i++)
       ost << " " << simd[i];
+    */
+    Iterate2<simd.Size()> ([&] (auto I) {
+        if (I.value != 0) ost << " ";
+        ost << get<I.value>(simd);
+      });
     return ost;
   }
 
@@ -1512,5 +1535,15 @@ namespace ngstd
   T get(SIMD<T,N> a) { return a[i]; }
   
 }
+
+namespace std
+{
+  // structured binding support
+  template <typename T, int N >
+  struct tuple_size<ngstd::SIMD<T,N>> : std::integral_constant<std::size_t, N> {};
+  template<size_t N, typename T, int M> struct tuple_element<N,ngstd::SIMD<T,M>> { using type = T; };
+}
+
+
 
 #endif

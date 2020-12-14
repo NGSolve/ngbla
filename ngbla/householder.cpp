@@ -78,7 +78,7 @@ namespace ngbla
   MultiHouseholderReflection<OMV> :: MultiHouseholderReflection (SliceMatrix<double,OMV> amv)
     : mv(amv), T(amv.Height())
   {
-    static Timer t("multiHouseholder, ctor"); RegionTimer reg(t);
+    // static Timer t("multiHouseholder, ctor"); RegionTimer reg(t);
     size_t m = mv.Height();
 
     //
@@ -132,12 +132,10 @@ namespace ngbla
           // static Timer t(timername+string("1")); RegionTimer reg(t);
           GeneralizedTriangularMult<UpperRight,Normalized> (mv, colsm2, tmp);
         }
-
         {
           // static Timer t(timername+string("2")); RegionTimer reg(t);        
           TriangularMult<LowerLeft,NonNormalized> (T, tmp);
         }
-        
         // colsm2 -= Trans(mv)*tmp;
         IntRange r1(0, mv.Height());
         IntRange r2(mv.Height(), colsm2.Height());
@@ -205,8 +203,8 @@ namespace ngbla
 
 
 
-  
-  void QRFactorizationInPlace (SliceMatrix<> A)
+  template <ORDERING ORDER>
+  void T_QRFactorizationInPlace (SliceMatrix<double, ORDER> A)
   {
     static Timer t("QRFactorization inplace"); RegionTimer reg(t);
 
@@ -249,6 +247,15 @@ namespace ngbla
       }
   }
 
+  NGS_DLL_HEADER void QRFactorizationInPlace (SliceMatrix<double,RowMajor> A)
+  {
+    T_QRFactorizationInPlace (A);
+  }
+  
+  NGS_DLL_HEADER void QRFactorizationInPlace (SliceMatrix<double,ColMajor> A)
+  {
+    T_QRFactorizationInPlace (A);    
+  }
 
   
   /*

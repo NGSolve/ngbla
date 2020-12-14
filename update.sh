@@ -39,6 +39,7 @@ cp $1/basiclinalg/triangular.cpp ngbla/
 cp $1/basiclinalg/LUdecomposition.cpp ngbla/
 cp $1/basiclinalg/householder.hpp ngbla/
 cp $1/basiclinalg/householder.cpp ngbla/
+cp $1/basiclinalg/svd.cpp ngbla/
 
 # cp $1/ngstd/ngstd.hpp ngbla/ too many changes, need to adapt manually!
 

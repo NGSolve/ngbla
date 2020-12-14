@@ -19,4 +19,6 @@ target_link_libraries(time_simple_matmult ngcore)
 add_executable(demo_simd demo_simd.cpp)
 target_link_libraries(demo_simd ngcore)
 
+# add_executable(Hmatrix Hmatrix.cpp)
+# target_link_libraries(Hmatrix ngcore)
 

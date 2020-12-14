@@ -180,6 +180,14 @@ namespace ngbla
       return SliceVector<T,TIND> (h, w+1, &data[0]);
     }
 
+    const SliceVector<T> Diag (int offset) const
+    {
+      int dp = max(offset, 0);
+      int dm = min(offset, 0);
+      return SliceVector<T> (min(w-dp, h+dm), Dist()+1, data+dp-dm*Dist());
+    }
+    
+
     using CMCPMatExpr<FlatMatrix>::Rows;
     using CMCPMatExpr<FlatMatrix>::Cols;
 
@@ -1501,11 +1509,6 @@ namespace ngbla
       return FlatVector<T> (w, &data[i*dist]);
     }
 
-    INLINE const FlatVector<T> Diag (size_t i) const
-    {
-      return SliceVector<T> (h, dist+1, data);
-    }
-
     INLINE const SliceVector<T> Col (size_t i) const
     {
       return SliceVector<T> (h, dist, &data[i]);
@@ -1530,6 +1533,15 @@ namespace ngbla
     {
       return SliceVector<T> (h, dist+1, &data[0]);
     }
+
+    INLINE const SliceVector<T> Diag (int offset) const
+    {
+      // return SliceVector<T> (h, dist+1, data);
+      int dp = max(offset, 0);
+      int dm = min(offset, 0);
+      return SliceVector<T> (min(w-dp, h+dm), dist+1, data+dp-dm*dist);
+    }
+
 
   };
 
@@ -1626,7 +1638,14 @@ namespace ngbla
       return SliceVector<T> (w, dist+1, data);
     }
 
+    const SliceVector<T> Diag (int offset) const
+    {
+      int dp = max(offset, 0);
+      int dm = min(offset, 0);
+      return SliceVector<T> (min(w-dp, h+dm), dist+1, data-dm+dp*dist);
+    }
 
+    
     const SliceMatrix Rows (size_t first, size_t next) const
     {
       return SliceMatrix (next-first, w, dist, data+first);
