@@ -83,8 +83,8 @@ namespace ngbla
   void ReduceBiDiagonal (SliceMatrix<double,ORD> A, 
                          SliceMatrix<double, ColMajor> U1, SliceMatrix<double, ColMajor> V1)
   {
-    static Timer ttrig("householder-triangular"); RegionTimer reg(ttrig);
-    static Timer tuv("householder-triangular, transform uv"); 
+    // static Timer ttrig("householder-triangular"); RegionTimer reg(ttrig);
+    // static Timer tuv("householder-triangular, transform uv"); 
   
     size_t m = A.Height();
     size_t n = A.Width();
@@ -175,7 +175,7 @@ namespace ngbla
           }
       }
 
-    RegionTimer ruv(tuv);    
+    // RegionTimer ruv(tuv);    
 
     ApplyHouseholderReflections (A, Trans(U1));
     if (n > 1)
